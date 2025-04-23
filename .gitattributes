@@ -1,0 +1,7 @@
+# テキストファイルの改行コードを自動的にLFに変換
+* text=auto eol=lf
+
+# バイナリファイルが変更されないようにする
+*.png binary
+*.jpg binary
+*.gif binary
