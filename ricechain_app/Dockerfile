@@ -2,6 +2,8 @@ FROM node:18
 
 WORKDIR /app
 
+ENV NEXT_TURBO=0
+
 COPY package*.json ./
 
 RUN npm install
