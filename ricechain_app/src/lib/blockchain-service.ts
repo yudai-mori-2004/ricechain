@@ -3,7 +3,8 @@ import { Farmer, FarmerListItem } from '@/types/farmer';
 import { Review, ReviewListItem } from '@/types/review';
 import { Order, OrderListItem } from '@/types/order';
 import { User } from '@/types/user';
-import { mockProducts, mockProductListItems, mockFarmers, mockFarmerListItems, mockReviews, mockReviewListItems, mockOrders, mockOrderListItems, mockUser } from '@/lib/mock-data';
+import { mockProducts, mockProductListItems, mockFarmers, mockFarmerListItems, mockReviews, mockReviewListItems, mockOrders, mockOrderListItems, mockUser, mockDisputes } from '@/lib/mock-data';
+import { Dispute, ChatMessage, JuryVote } from '@/lib/app-context';
 
 // Flag to toggle between mock data and blockchain data
 // Set to true to use blockchain data, false to use mock data
@@ -454,6 +455,296 @@ class BlockchainService {
     } catch (error) {
       console.error(`Failed to update KomePon settings for farmer ${farmerId} on blockchain:`, error);
       throw new Error('Failed to update KomePon settings on blockchain');
+    }
+  }
+
+  /**
+   * Get all disputes from the blockchain
+   */
+  async getDisputes(): Promise<Dispute[]> {
+    if (!USE_BLOCKCHAIN_DATA) return mockDisputes;
+    
+    try {
+      await this.initConnection();
+      
+      // This would be replaced with actual blockchain data fetching
+      console.log('Fetching disputes from blockchain...');
+      
+      // For now, return mock data
+      return mockDisputes;
+    } catch (error) {
+      console.error('Failed to fetch disputes from blockchain:', error);
+      return mockDisputes;
+    }
+  }
+
+  /**
+   * Get a dispute by ID from the blockchain
+   */
+  async getDisputeById(id: string): Promise<Dispute | undefined> {
+    if (!USE_BLOCKCHAIN_DATA) return mockDisputes.find(d => d.id === id);
+    
+    try {
+      await this.initConnection();
+      
+      // This would be replaced with actual blockchain data fetching
+      console.log(`Fetching dispute ${id} from blockchain...`);
+      
+      // For now, return mock data
+      return mockDisputes.find(d => d.id === id);
+    } catch (error) {
+      console.error(`Failed to fetch dispute ${id} from blockchain:`, error);
+      return mockDisputes.find(d => d.id === id);
+    }
+  }
+
+  /**
+   * Get disputes for a user from the blockchain
+   */
+  async getDisputesByUserId(userId: string): Promise<Dispute[]> {
+    if (!USE_BLOCKCHAIN_DATA) return mockDisputes.filter(d => d.buyerId === userId || d.sellerId === userId);
+    
+    try {
+      await this.initConnection();
+      
+      // This would be replaced with actual blockchain data fetching
+      console.log(`Fetching disputes for user ${userId} from blockchain...`);
+      
+      // For now, return mock data
+      return mockDisputes.filter(d => d.buyerId === userId || d.sellerId === userId);
+    } catch (error) {
+      console.error(`Failed to fetch disputes for user ${userId} from blockchain:`, error);
+      return mockDisputes.filter(d => d.buyerId === userId || d.sellerId === userId);
+    }
+  }
+
+  /**
+   * Create a new dispute on the blockchain
+   */
+  async createDispute(dispute: Omit<Dispute, 'id' | 'createdAt' | 'updatedAt' | 'chatMessages' | 'juryVotes' | 'buyerVoteCount' | 'sellerVoteCount'>): Promise<Dispute> {
+    if (!USE_BLOCKCHAIN_DATA) {
+      // Create a mock dispute with generated ID and timestamps
+      const newDispute: Dispute = {
+        ...dispute,
+        id: `d${mockDisputes.length + 1}`,
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+        chatMessages: [
+          {
+            id: `cm${Date.now()}`,
+            disputeId: `d${mockDisputes.length + 1}`,
+            senderId: dispute.buyerId,
+            senderName: mockUser.name,
+            message: dispute.buyerStatement,
+            createdAt: new Date().toISOString(),
+          }
+        ],
+        jurySize: 5,
+        juryVotes: 0,
+        buyerVoteCount: 0,
+        sellerVoteCount: 0
+      };
+      
+      // In a real app, we would update the mock data here
+      // mockDisputes.push(newDispute);
+      
+      return newDispute;
+    }
+    
+    try {
+      await this.initConnection();
+      
+      // This would be replaced with actual blockchain transaction
+      console.log('Creating dispute on blockchain...');
+      
+      // For now, return a mock dispute
+      const newDispute: Dispute = {
+        ...dispute,
+        id: `d${mockDisputes.length + 1}`,
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+        chatMessages: [
+          {
+            id: `cm${Date.now()}`,
+            disputeId: `d${mockDisputes.length + 1}`,
+            senderId: dispute.buyerId,
+            senderName: mockUser.name,
+            message: dispute.buyerStatement,
+            createdAt: new Date().toISOString(),
+          }
+        ],
+        jurySize: 5,
+        juryVotes: 0,
+        buyerVoteCount: 0,
+        sellerVoteCount: 0
+      };
+      
+      return newDispute;
+    } catch (error) {
+      console.error('Failed to create dispute on blockchain:', error);
+      throw new Error('Failed to create dispute on blockchain');
+    }
+  }
+
+  /**
+   * Add a chat message to a dispute on the blockchain
+   */
+  async addDisputeChatMessage(disputeId: string, message: Omit<ChatMessage, 'id' | 'createdAt'>): Promise<Dispute | undefined> {
+    if (!USE_BLOCKCHAIN_DATA) {
+      const dispute = mockDisputes.find(d => d.id === disputeId);
+      
+      if (!dispute) return undefined;
+      
+      // Create a new chat message
+      const newMessage: ChatMessage = {
+        ...message,
+        id: `cm${Date.now()}`,
+        createdAt: new Date().toISOString(),
+      };
+      
+      // In a real app, we would update the mock data here
+      // const updatedDispute = {
+      //   ...dispute,
+      //   chatMessages: [...dispute.chatMessages, newMessage],
+      //   updatedAt: new Date().toISOString(),
+      // };
+      
+      // Return a new object with the updated chat messages
+      return {
+        ...dispute,
+        chatMessages: [...dispute.chatMessages, newMessage],
+        updatedAt: new Date().toISOString(),
+      };
+    }
+    
+    try {
+      await this.initConnection();
+      
+      // This would be replaced with actual blockchain transaction
+      console.log(`Adding chat message to dispute ${disputeId} on blockchain...`);
+      
+      // For now, return the updated dispute
+      const dispute = mockDisputes.find(d => d.id === disputeId);
+      
+      if (!dispute) return undefined;
+      
+      // Create a new chat message
+      const newMessage: ChatMessage = {
+        ...message,
+        id: `cm${Date.now()}`,
+        createdAt: new Date().toISOString(),
+      };
+      
+      // Return a new object with the updated chat messages
+      return {
+        ...dispute,
+        chatMessages: [...dispute.chatMessages, newMessage],
+        updatedAt: new Date().toISOString(),
+      };
+    } catch (error) {
+      console.error(`Failed to add chat message to dispute ${disputeId} on blockchain:`, error);
+      throw new Error('Failed to add chat message to dispute on blockchain');
+    }
+  }
+
+  /**
+   * Update a dispute status on the blockchain
+   */
+  async updateDisputeStatus(disputeId: string, status: 'pending' | 'in_chat' | 'in_jury' | 'resolved', resolution?: string, compensation?: number): Promise<Dispute | undefined> {
+    if (!USE_BLOCKCHAIN_DATA) {
+      const dispute = mockDisputes.find(d => d.id === disputeId);
+      
+      if (!dispute) return undefined;
+      
+      // In a real app, we would update the mock data here
+      // const updatedDispute = {
+      //   ...dispute,
+      //   status,
+      //   resolution,
+      //   compensation,
+      //   updatedAt: new Date().toISOString(),
+      // };
+      
+      // Return a new object with the updated status
+      return {
+        ...dispute,
+        status,
+        resolution,
+        compensation,
+        updatedAt: new Date().toISOString(),
+      };
+    }
+    
+    try {
+      await this.initConnection();
+      
+      // This would be replaced with actual blockchain transaction
+      console.log(`Updating dispute ${disputeId} status to ${status} on blockchain...`);
+      
+      // For now, return the updated dispute
+      const dispute = mockDisputes.find(d => d.id === disputeId);
+      
+      if (!dispute) return undefined;
+      
+      // Return a new object with the updated status
+      return {
+        ...dispute,
+        status,
+        resolution,
+        compensation,
+        updatedAt: new Date().toISOString(),
+      };
+    } catch (error) {
+      console.error(`Failed to update dispute ${disputeId} status on blockchain:`, error);
+      throw new Error('Failed to update dispute status on blockchain');
+    }
+  }
+
+  /**
+   * Submit a jury vote for a dispute on the blockchain
+   */
+  async submitJuryVote(vote: Omit<JuryVote, 'id' | 'createdAt'>): Promise<JuryVote> {
+    if (!USE_BLOCKCHAIN_DATA) {
+      // Create a mock jury vote with generated ID and timestamp
+      const newVote: JuryVote = {
+        ...vote,
+        id: `jv${Date.now()}`,
+        createdAt: new Date().toISOString(),
+      };
+      
+      // In a real app, we would update the mock data here
+      // Update the dispute with the new vote count
+      // const dispute = mockDisputes.find(d => d.id === vote.disputeId);
+      // if (dispute) {
+      //   dispute.juryVotes += 1;
+      //   if (vote.vote === 'buyer') {
+      //     dispute.buyerVoteCount += 1;
+      //   } else {
+      //     dispute.sellerVoteCount += 1;
+      //   }
+      //   dispute.updatedAt = new Date().toISOString();
+      // }
+      
+      return newVote;
+    }
+    
+    try {
+      await this.initConnection();
+      
+      // This would be replaced with actual blockchain transaction
+      console.log(`Submitting jury vote for dispute ${vote.disputeId} on blockchain...`);
+      
+      // For now, return a mock jury vote
+      const newVote: JuryVote = {
+        ...vote,
+        id: `jv${Date.now()}`,
+        createdAt: new Date().toISOString(),
+      };
+      
+      return newVote;
+    } catch (error) {
+      console.error(`Failed to submit jury vote for dispute ${vote.disputeId} on blockchain:`, error);
+      throw new Error('Failed to submit jury vote on blockchain');
     }
   }
 }

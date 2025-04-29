@@ -1,4 +1,6 @@
-import React from 'react';
+'use client';
+
+import React, { useState } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
@@ -7,57 +9,97 @@ import { Card, CardContent } from '@/components/ui/card';
 import { blockchainService } from '@/lib/blockchain-service';
 import { Product } from '@/types/product';
 import { ReviewListItem } from '@/types/review';
+import { useAppContext } from '@/lib/app-context';
 
-export async function generateMetadata({ params }: { params: { id: string } }) {
-  const product = await blockchainService.getProductById(params.id);
+export default function ProductDetailPage({ params }: { params: { id: string } }) {
+  const { addToCart, user, useMockData } = useAppContext();
+  const [product, setProduct] = useState<Product | null>(null);
+  const [reviews, setReviews] = useState<ReviewListItem[]>([]);
+  const [relatedProducts, setRelatedProducts] = useState<Product[]>([]);
+  const [quantity, setQuantity] = useState(1);
+  const [loading, setLoading] = useState(true);
+  const [addingToCart, setAddingToCart] = useState(false);
+  const [addedToCart, setAddedToCart] = useState(false);
 
-  if (!product) {
-    return {
-      title: '商品が見つかりません | RiceChain',
-      description: '指定された商品は存在しないか、削除された可能性があります。',
+  // Fetch product data
+  React.useEffect(() => {
+    const fetchData = async () => {
+      try {
+        setLoading(true);
+        
+        // Fetch product
+        const productData = await blockchainService.getProductById(params.id);
+        if (!productData) {
+          notFound();
+        }
+        setProduct(productData);
+        
+        // Fetch reviews
+        const reviewsData = await blockchainService.getReviewsByProductId(params.id);
+        const reviewListItems: ReviewListItem[] = reviewsData.map(review => ({
+          id: review.id,
+          productId: review.productId,
+          rating: review.rating,
+          title: review.title,
+          content: review.content,
+          imageUrls: review.imageUrls,
+          likes: review.likes,
+          createdAt: review.createdAt,
+          user: {
+            id: review.user.id,
+            name: review.user.name,
+            avatarUrl: review.user.avatarUrl,
+          },
+          product: {
+            id: review.product.id,
+            name: review.product.name,
+            imageUrl: review.product.imageUrl,
+          },
+        }));
+        setReviews(reviewListItems);
+        
+        // Get related products
+        const allProducts = await blockchainService.getProducts();
+        const related = allProducts
+          .filter((p) => p.id !== productData.id)
+          .slice(0, 4);
+        setRelatedProducts(related);
+        
+        setLoading(false);
+      } catch (error) {
+        console.error('Failed to fetch product data:', error);
+        setLoading(false);
+      }
     };
-  }
-
-  return {
-    title: `${product.name} | RiceChain`,
-    description: product.description,
+    
+    fetchData();
+  }, [params.id]);
+  
+  const handleAddToCart = () => {
+    if (!product) return;
+    
+    setAddingToCart(true);
+    
+    // Simulate a delay for the cart addition
+    setTimeout(() => {
+      addToCart(product, quantity);
+      setAddingToCart(false);
+      setAddedToCart(true);
+      
+      // Reset the "Added to cart" message after 3 seconds
+      setTimeout(() => {
+        setAddedToCart(false);
+      }, 3000);
+    }, 500);
   };
-}
-
-export default async function ProductDetailPage({ params }: { params: { id: string } }) {
-  const product = await blockchainService.getProductById(params.id);
-
-  if (!product) {
-    notFound();
+  
+  if (loading || !product) {
+    return (
+      <div className="flex justify-center items-center min-h-[50vh]">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-600"></div>
+      </div>
+    );
   }
-
-  const reviews = await blockchainService.getReviewsByProductId(params.id);
-  const reviewListItems: ReviewListItem[] = reviews.map(review => ({
-    id: review.id,
-    productId: review.productId,
-    rating: review.rating,
-    title: review.title,
-    content: review.content,
-    imageUrls: review.imageUrls,
-    likes: review.likes,
-    createdAt: review.createdAt,
-    user: {
-      id: review.user.id,
-      name: review.user.name,
-      avatarUrl: review.user.avatarUrl,
-    },
-    product: {
-      id: review.product.id,
-      name: review.product.name,
-      imageUrl: review.product.imageUrl,
-    },
-  }));
-
-  // Get related products (excluding current product)
-  const allProducts = await blockchainService.getProducts();
-  const relatedProducts = allProducts
-    .filter((p) => p.id !== product.id)
-    .slice(0, 4);
 
   return (
     <div className="space-y-8">
@@ -141,7 +183,11 @@ export default async function ProductDetailPage({ params }: { params: { id: stri
           <div className="space-y-4">
             <div className="flex items-center">
               <span className="text-gray-700 dark:text-gray-300 mr-2">数量:</span>
-              <select className="bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-700 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary-500">
+              <select 
+                className="bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-700 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary-500"
+                value={quantity}
+                onChange={(e) => setQuantity(parseInt(e.target.value))}
+              >
                 {[...Array(10)].map((_, i) => (
                   <option key={i + 1} value={i + 1}>
                     {i + 1}
@@ -153,10 +199,13 @@ export default async function ProductDetailPage({ params }: { params: { id: stri
             <div className="flex space-x-4">
               <Button
                 variant={product.available ? 'default' : 'outline'}
-                disabled={!product.available}
+                disabled={!product.available || addingToCart}
                 fullWidth={true}
+                onClick={handleAddToCart}
               >
-                {product.available ? 'カートに追加' : '在庫切れ'}
+                {addingToCart ? '追加中...' : 
+                 addedToCart ? 'カートに追加しました！' : 
+                 product.available ? 'カートに追加' : '在庫切れ'}
               </Button>
 
               <Button variant="outline">
@@ -176,6 +225,14 @@ export default async function ProductDetailPage({ params }: { params: { id: stri
                 </svg>
               </Button>
             </div>
+            
+            {useMockData && (
+              <div className="mt-4 p-2 bg-yellow-50 dark:bg-yellow-900/20 rounded-md">
+                <p className="text-xs text-yellow-700 dark:text-yellow-400">
+                  <span className="font-medium">モックモード:</span> 実際のブロックチェーンとは接続していません。右上の「モック」ボタンからモードを切り替えられます。
+                </p>
+              </div>
+            )}
           </div>
         </div>
       </div>
@@ -281,9 +338,9 @@ export default async function ProductDetailPage({ params }: { params: { id: stri
           </Link>
         </div>
 
-        {reviewListItems.length > 0 ? (
+        {reviews.length > 0 ? (
           <div className="space-y-6">
-            {reviewListItems.slice(0, 3).map((review) => (
+            {reviews.slice(0, 3).map((review) => (
               <Card key={review.id}>
                 <CardContent className="p-6">
                   <div className="flex justify-between mb-2">
@@ -325,7 +382,7 @@ export default async function ProductDetailPage({ params }: { params: { id: stri
 
                   {review.imageUrls && review.imageUrls.length > 0 && (
                     <div className="flex space-x-2 mt-3">
-                      {review.imageUrls.map((url, index) => (
+                      {review.imageUrls.map((url: string, index: number) => (
                         <div key={index} className="relative w-20 h-20 rounded-md overflow-hidden">
                           <Image src={url} alt={`レビュー画像 ${index + 1}`} fill className="object-cover" />
                         </div>

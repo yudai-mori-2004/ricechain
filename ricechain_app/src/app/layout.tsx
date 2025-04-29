@@ -3,6 +3,7 @@ import { Inter } from 'next/font/google';
 import Header from '@/components/layout/header';
 import Navigation from '@/components/layout/navigation';
 import MobileNavigation from '@/components/layout/mobile-navigation';
+import { AppProvider } from '@/lib/app-context';
 
 const inter = Inter({ subsets: ['latin'], variable: '--font-geist-sans' });
 
@@ -19,14 +20,16 @@ export default function RootLayout({
   return (
     <html lang="ja" className={inter.variable}>
       <body className="min-h-screen bg-gray-50 dark:bg-gray-900">
-        <Header />
-        <div className="flex">
-          <Navigation />
-          <main className="flex-1 container mx-auto px-4 py-8">
-            {children}
-          </main>
-        </div>
-        <MobileNavigation />
+        <AppProvider>
+          <Header />
+          <div className="flex">
+            <Navigation />
+            <main className="flex-1 container mx-auto px-4 py-8">
+              {children}
+            </main>
+          </div>
+          <MobileNavigation />
+        </AppProvider>
       </body>
     </html>
   );

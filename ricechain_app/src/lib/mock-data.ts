@@ -566,6 +566,146 @@ export const mockOrderListItems: OrderListItem[] = mockOrders.map(order => ({
   canReview: order.status === 'completed' && !order.reviewSubmitted,
 }));
 
+// Mock Disputes
+export const mockDisputes: import('@/lib/app-context').Dispute[] = [
+  {
+    id: 'd1',
+    orderId: 'o2',
+    buyerId: 'u1',
+    sellerId: 'f2',
+    reason: '商品が破損していました',
+    buyerStatement: '商品が届いた際に袋に破れがあり、一部の米がこぼれていました。',
+    sellerStatement: '配送中の事故だと思われます。差額分を返金するか、再送するかご希望をお知らせください。',
+    status: 'in_chat' as const,
+    createdAt: new Date(Date.now() - 48 * 60 * 60 * 1000).toISOString(),
+    updatedAt: new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString(),
+    chatMessages: [
+      {
+        id: 'cm1',
+        disputeId: 'd1',
+        senderId: 'u1',
+        senderName: '佐々木健太',
+        message: '商品が届いた際に袋に破れがあり、一部の米がこぼれていました。30%ほど返金していただけないでしょうか。',
+        createdAt: new Date(Date.now() - 48 * 60 * 60 * 1000).toISOString(),
+      },
+      {
+        id: 'cm2',
+        disputeId: 'd1',
+        senderId: 'f2',
+        senderName: '佐藤ファーム',
+        message: '配送中の事故だと思われます。20%の返金でいかがでしょうか？',
+        createdAt: new Date(Date.now() - 36 * 60 * 60 * 1000).toISOString(),
+      },
+      {
+        id: 'cm3',
+        disputeId: 'd1',
+        senderId: 'u1',
+        senderName: '佐々木健太',
+        message: '25%でお願いできないでしょうか？',
+        createdAt: new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString(),
+      }
+    ],
+    jurySize: 5,
+    juryVotes: 0,
+    buyerVoteCount: 0,
+    sellerVoteCount: 0
+  },
+  {
+    id: 'd2',
+    orderId: 'o3',
+    buyerId: 'u1',
+    sellerId: 'f6',
+    reason: '商品の品質が説明と異なる',
+    buyerStatement: '届いた商品は説明にあった「もっちりとした食感」ではなく、パサパサしていました。',
+    sellerStatement: '保存方法や炊き方によって食感が変わることがあります。詳しい状況を教えていただけますか？',
+    status: 'in_jury' as const,
+    createdAt: new Date(Date.now() - 96 * 60 * 60 * 1000).toISOString(),
+    updatedAt: new Date(Date.now() - 12 * 60 * 60 * 1000).toISOString(),
+    chatMessages: [
+      {
+        id: 'cm4',
+        disputeId: 'd2',
+        senderId: 'u1',
+        senderName: '佐々木健太',
+        message: '届いた商品は説明にあった「もっちりとした食感」ではなく、パサパサしていました。全額返金を希望します。',
+        createdAt: new Date(Date.now() - 96 * 60 * 60 * 1000).toISOString(),
+      },
+      {
+        id: 'cm5',
+        disputeId: 'd2',
+        senderId: 'f6',
+        senderName: '小林ライスファーム',
+        message: '保存方法や炊き方によって食感が変わることがあります。詳しい状況を教えていただけますか？',
+        createdAt: new Date(Date.now() - 84 * 60 * 60 * 1000).toISOString(),
+      },
+      {
+        id: 'cm6',
+        disputeId: 'd2',
+        senderId: 'u1',
+        senderName: '佐々木健太',
+        message: '説明書通りに炊きましたが、期待していた食感ではありませんでした。少なくとも50%の返金を希望します。',
+        createdAt: new Date(Date.now() - 72 * 60 * 60 * 1000).toISOString(),
+      },
+      {
+        id: 'cm7',
+        disputeId: 'd2',
+        senderId: 'f6',
+        senderName: '小林ライスファーム',
+        message: '全額返金はできませんが、20%の返金であれば対応可能です。',
+        createdAt: new Date(Date.now() - 60 * 60 * 60 * 1000).toISOString(),
+      }
+    ],
+    jurySize: 5,
+    juryVotes: 3,
+    buyerVoteCount: 1,
+    sellerVoteCount: 2
+  },
+  {
+    id: 'd3',
+    orderId: 'o1',
+    buyerId: 'u2',
+    sellerId: 'f1',
+    reason: '配送が遅延した',
+    buyerStatement: '指定された配送日より3日遅れて商品が届きました。',
+    sellerStatement: '配送業者の都合による遅延で申し訳ありませんでした。次回の購入時に10%割引クーポンを提供させていただきます。',
+    status: 'resolved' as const,
+    resolution: '売り手側の提案が受け入れられました',
+    compensation: 0,
+    createdAt: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString(),
+    updatedAt: new Date(Date.now() - 28 * 24 * 60 * 60 * 1000).toISOString(),
+    chatMessages: [
+      {
+        id: 'cm8',
+        disputeId: 'd3',
+        senderId: 'u2',
+        senderName: '田中美咲',
+        message: '指定された配送日より3日遅れて商品が届きました。何らかの補償をお願いします。',
+        createdAt: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString(),
+      },
+      {
+        id: 'cm9',
+        disputeId: 'd3',
+        senderId: 'f1',
+        senderName: '山田農園',
+        message: '配送業者の都合による遅延で申し訳ありませんでした。次回の購入時に10%割引クーポンを提供させていただきます。',
+        createdAt: new Date(Date.now() - 29 * 24 * 60 * 60 * 1000).toISOString(),
+      },
+      {
+        id: 'cm10',
+        disputeId: 'd3',
+        senderId: 'u2',
+        senderName: '田中美咲',
+        message: 'ご対応ありがとうございます。次回の購入を楽しみにしています。',
+        createdAt: new Date(Date.now() - 28.5 * 24 * 60 * 60 * 1000).toISOString(),
+      }
+    ],
+    jurySize: 0,
+    juryVotes: 0,
+    buyerVoteCount: 0,
+    sellerVoteCount: 0
+  }
+];
+
 // Mock User
 export const mockUser: User = {
   id: 'u1',

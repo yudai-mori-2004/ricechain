@@ -2,15 +2,18 @@
 
 import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
+import { useAppContext } from '@/lib/app-context';
 
 interface WalletConnectProps {
     onConnect?: (address: string) => void;
 }
 
 const WalletConnect: React.FC<WalletConnectProps> = ({ onConnect }) => {
+    const { useMockData, setUseMockData } = useAppContext();
     const [connected, setConnected] = useState(false);
     const [walletAddress, setWalletAddress] = useState<string | null>(null);
     const [loading, setLoading] = useState(false);
+    const [showModeToggle, setShowModeToggle] = useState(false);
 
     // Check if wallet is already connected on component mount
     useEffect(() => {
@@ -70,30 +73,78 @@ const WalletConnect: React.FC<WalletConnectProps> = ({ onConnect }) => {
         }
     };
 
+    const toggleModeDropdown = () => {
+        setShowModeToggle(!showModeToggle);
+    };
+
     return (
-        <div>
-            {connected ? (
-                <div className="flex items-center space-x-2">
-                    <span className="text-sm text-gray-600 dark:text-gray-400 hidden md:inline">
-                        {walletAddress?.substring(0, 4)}...{walletAddress?.substring(walletAddress.length - 4)}
-                    </span>
+        <div className="relative">
+            <div className="flex items-center space-x-2">
+                {connected ? (
+                    <>
+                        <span className="text-sm text-gray-600 dark:text-gray-400 hidden md:inline">
+                            {walletAddress?.substring(0, 4)}...{walletAddress?.substring(walletAddress.length - 4)}
+                        </span>
+                        <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={disconnectWallet}
+                            disabled={loading}
+                        >
+                            {loading ? '処理中...' : '切断'}
+                        </Button>
+                    </>
+                ) : (
                     <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={disconnectWallet}
+                        onClick={connectWallet}
                         disabled={loading}
+                        size="sm"
                     >
-                        {loading ? '処理中...' : '切断'}
+                        {loading ? '接続中...' : 'ウォレット接続'}
                     </Button>
-                </div>
-            ) : (
+                )}
+                
                 <Button
-                    onClick={connectWallet}
-                    disabled={loading}
+                    variant="ghost"
                     size="sm"
+                    onClick={toggleModeDropdown}
+                    className="text-xs"
                 >
-                    {loading ? '接続中...' : 'ウォレット接続'}
+                    {useMockData ? 'モック' : 'チェーン'}
+                    <svg 
+                        xmlns="http://www.w3.org/2000/svg" 
+                        className="h-4 w-4 ml-1" 
+                        fill="none" 
+                        viewBox="0 0 24 24" 
+                        stroke="currentColor"
+                    >
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                    </svg>
                 </Button>
+            </div>
+            
+            {showModeToggle && (
+                <div className="absolute right-0 mt-2 w-48 bg-white dark:bg-gray-800 rounded-md shadow-lg z-10 border border-gray-200 dark:border-gray-700">
+                    <div className="p-2">
+                        <p className="text-xs text-gray-500 dark:text-gray-400 mb-2">データモード切替</p>
+                        <div className="flex items-center justify-between p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-md cursor-pointer" onClick={() => { setUseMockData(true); setShowModeToggle(false); }}>
+                            <span className="text-sm">モックデータ</span>
+                            {useMockData && (
+                                <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 text-primary-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                                </svg>
+                            )}
+                        </div>
+                        <div className="flex items-center justify-between p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-md cursor-pointer" onClick={() => { setUseMockData(false); setShowModeToggle(false); }}>
+                            <span className="text-sm">チェーンデータ</span>
+                            {!useMockData && (
+                                <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 text-primary-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                                </svg>
+                            )}
+                        </div>
+                    </div>
+                </div>
             )}
         </div>
     );
