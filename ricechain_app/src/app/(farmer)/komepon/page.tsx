@@ -2,20 +2,20 @@ import React from 'react';
 import Link from 'next/link';
 import { Card, CardContent, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { mockFarmers } from '@/lib/mock-data';
+import { blockchainService } from '@/lib/blockchain-service';
 
 export const metadata = {
   title: 'KomePon設定 | RiceChain',
   description: 'KomePon値引きの設定を管理します。',
 };
 
-export default function KomePonSettingsPage() {
+export default async function KomePonSettingsPage() {
   // 農家ID（実際のアプリではログインユーザーから取得）
   const farmerId = 'f1';
-  
+
   // 農家情報
-  const farmer = mockFarmers.find(f => f.id === farmerId);
-  
+  const farmer = await blockchainService.getFarmerById(farmerId);
+
   if (!farmer) {
     return (
       <div className="text-center py-12">
@@ -28,26 +28,26 @@ export default function KomePonSettingsPage() {
       </div>
     );
   }
-  
+
   // KomePon使用状況
   const komePonData = {
     budget: farmer.komePonBudget || 0,
-    used: farmer.komePonSettings?.maxRedemptions 
+    used: farmer.komePonSettings?.maxRedemptions
       ? (farmer.komePonSettings.maxRedemptions - farmer.komePonSettings.remainingRedemptions) * farmer.komePonSettings.discountAmount
       : 0,
-    remaining: farmer.komePonSettings?.remainingRedemptions 
+    remaining: farmer.komePonSettings?.remainingRedemptions
       ? farmer.komePonSettings.remainingRedemptions * farmer.komePonSettings.discountAmount
       : 0,
     discountAmount: farmer.komePonSettings?.discountAmount || 0,
     maxRedemptions: farmer.komePonSettings?.maxRedemptions || 0,
     remainingRedemptions: farmer.komePonSettings?.remainingRedemptions || 0,
   };
-  
+
   // 割引率
-  const discountRate = farmer.komePonSettings?.discountAmount 
-    ? Math.round((farmer.komePonSettings.discountAmount / 3500) * 100) 
+  const discountRate = farmer.komePonSettings?.discountAmount
+    ? Math.round((farmer.komePonSettings.discountAmount / 3500) * 100)
     : 0;
-  
+
   return (
     <div className="space-y-8">
       <div>
@@ -58,7 +58,7 @@ export default function KomePonSettingsPage() {
           KomePon値引きの設定を管理します。適切な値引き額と枠数を設定して、売上を最大化しましょう。
         </p>
       </div>
-      
+
       {/* KomePon状況 */}
       <Card>
         <CardHeader>
@@ -72,14 +72,14 @@ export default function KomePonSettingsPage() {
                 {farmer.komePonRank || '-'}位
               </p>
             </div>
-            
+
             <div>
               <p className="text-sm text-gray-500 dark:text-gray-400 mb-1">KomePon予算</p>
               <p className="text-xl font-bold text-gray-900 dark:text-white">
                 {new Intl.NumberFormat('ja-JP', { style: 'currency', currency: 'JPY' }).format(komePonData.budget)}
               </p>
             </div>
-            
+
             <div>
               <p className="text-sm text-gray-500 dark:text-gray-400 mb-1">残り予算</p>
               <p className="text-xl font-bold text-gray-900 dark:text-white">
@@ -87,7 +87,7 @@ export default function KomePonSettingsPage() {
               </p>
             </div>
           </div>
-          
+
           <div>
             <div className="flex justify-between mb-2">
               <span className="text-sm text-gray-500 dark:text-gray-400">予算使用状況</span>
@@ -102,7 +102,7 @@ export default function KomePonSettingsPage() {
               ></div>
             </div>
           </div>
-          
+
           <div className="bg-blue-50 dark:bg-blue-900/20 p-4 rounded-md">
             <h3 className="text-sm font-medium text-blue-800 dark:text-blue-300 mb-2">
               KomePon予算について
@@ -114,7 +114,7 @@ export default function KomePonSettingsPage() {
           </div>
         </CardContent>
       </Card>
-      
+
       {/* 現在の設定 */}
       <Card>
         <CardHeader>
@@ -131,14 +131,14 @@ export default function KomePonSettingsPage() {
                 約{discountRate}%割引
               </p>
             </div>
-            
+
             <div>
               <p className="text-sm text-gray-500 dark:text-gray-400 mb-1">値引き枠数</p>
               <p className="text-xl font-bold text-gray-900 dark:text-white">
                 {komePonData.maxRedemptions}枠
               </p>
             </div>
-            
+
             <div>
               <p className="text-sm text-gray-500 dark:text-gray-400 mb-1">残り値引き枠数</p>
               <p className="text-xl font-bold text-gray-900 dark:text-white">
@@ -151,7 +151,7 @@ export default function KomePonSettingsPage() {
           </div>
         </CardContent>
       </Card>
-      
+
       {/* 設定変更フォーム */}
       <Card>
         <CardHeader>
@@ -181,7 +181,7 @@ export default function KomePonSettingsPage() {
                 値引き額が大きいほど、消費者の購入意欲は高まりますが、予算の消費も早くなります。
               </p>
             </div>
-            
+
             <div>
               <label htmlFor="max-redemptions" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                 値引き枠数
@@ -205,7 +205,7 @@ export default function KomePonSettingsPage() {
               </p>
             </div>
           </div>
-          
+
           <div className="bg-yellow-50 dark:bg-yellow-900/20 p-4 rounded-md">
             <h3 className="text-sm font-medium text-yellow-800 dark:text-yellow-300 mb-2">
               設定変更の注意点
@@ -215,7 +215,7 @@ export default function KomePonSettingsPage() {
               ただし、既に使用された値引き枠は元に戻りません。
             </p>
           </div>
-          
+
           <div className="bg-gray-50 dark:bg-gray-800 p-4 rounded-md">
             <h3 className="text-sm font-medium text-gray-900 dark:text-white mb-2">
               予算シミュレーション
@@ -235,11 +235,10 @@ export default function KomePonSettingsPage() {
               </div>
               <div>
                 <p className="text-xs text-gray-500 dark:text-gray-400 mb-1">予算残高</p>
-                <p className={`text-sm font-medium ${
-                  komePonData.budget >= komePonData.discountAmount * komePonData.maxRedemptions
+                <p className={`text-sm font-medium ${komePonData.budget >= komePonData.discountAmount * komePonData.maxRedemptions
                     ? 'text-green-600 dark:text-green-400'
                     : 'text-red-600 dark:text-red-400'
-                }`}>
+                  }`}>
                   {new Intl.NumberFormat('ja-JP', { style: 'currency', currency: 'JPY' }).format(
                     komePonData.budget - (komePonData.discountAmount * komePonData.maxRedemptions)
                   )}
@@ -248,11 +247,10 @@ export default function KomePonSettingsPage() {
             </div>
             <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2.5 mb-2">
               <div
-                className={`h-2.5 rounded-full ${
-                  komePonData.budget >= komePonData.discountAmount * komePonData.maxRedemptions
+                className={`h-2.5 rounded-full ${komePonData.budget >= komePonData.discountAmount * komePonData.maxRedemptions
                     ? 'bg-green-600'
                     : 'bg-red-600'
-                }`}
+                  }`}
                 style={{ width: `${Math.min(100, Math.round((komePonData.discountAmount * komePonData.maxRedemptions / komePonData.budget) * 100))}%` }}
               ></div>
             </div>
@@ -272,7 +270,7 @@ export default function KomePonSettingsPage() {
           </Button>
         </CardFooter>
       </Card>
-      
+
       {/* 追加予算購入 */}
       <Card>
         <CardHeader>
@@ -283,7 +281,7 @@ export default function KomePonSettingsPage() {
             予算が不足している場合は、追加予算を購入することができます。
             追加予算は即時反映され、翌月の予算割り当てには影響しません。
           </p>
-          
+
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <Card className="hover:shadow-md transition-shadow cursor-pointer">
               <CardContent className="p-4 text-center">
@@ -301,7 +299,7 @@ export default function KomePonSettingsPage() {
                 </Button>
               </CardContent>
             </Card>
-            
+
             <Card className="border-primary-600 dark:border-primary-400 hover:shadow-md transition-shadow cursor-pointer">
               <CardContent className="p-4 text-center">
                 <div className="bg-primary-600 text-white text-xs font-bold py-1 px-2 rounded-full mb-2 inline-block">
@@ -321,7 +319,7 @@ export default function KomePonSettingsPage() {
                 </Button>
               </CardContent>
             </Card>
-            
+
             <Card className="hover:shadow-md transition-shadow cursor-pointer">
               <CardContent className="p-4 text-center">
                 <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">
@@ -341,7 +339,7 @@ export default function KomePonSettingsPage() {
           </div>
         </CardContent>
       </Card>
-      
+
       {/* KomePonの仕組み */}
       <Card>
         <CardHeader>
@@ -352,7 +350,7 @@ export default function KomePonSettingsPage() {
             KomePonは、「レビューを書くと次回購入時に値引きが受けられる」システムです。
             単なる値引きではなく、品質向上と消費者参加を促す仕組みとなっています。
           </p>
-          
+
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div>
               <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">
@@ -365,7 +363,7 @@ export default function KomePonSettingsPage() {
                 <li>新規顧客の獲得</li>
               </ul>
             </div>
-            
+
             <div>
               <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">
                 消費者側のメリット
@@ -378,7 +376,7 @@ export default function KomePonSettingsPage() {
               </ul>
             </div>
           </div>
-          
+
           <div className="bg-primary-50 dark:bg-primary-900/20 p-4 rounded-md">
             <h3 className="text-sm font-medium text-primary-800 dark:text-primary-300 mb-2">
               KomePon設定のコツ

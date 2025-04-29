@@ -4,31 +4,31 @@ import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { Card, CardContent, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { mockOrders } from '@/lib/mock-data';
+import { blockchainService } from '@/lib/blockchain-service';
 
 export async function generateMetadata({ params }: { params: { orderId: string } }) {
-  const order = mockOrders.find((o) => o.id === params.orderId);
-  
+  const order = await blockchainService.getOrderById(params.orderId);
+
   if (!order) {
     return {
       title: '注文が見つかりません | RiceChain',
       description: '指定された注文は存在しないか、削除された可能性があります。',
     };
   }
-  
+
   return {
     title: `レビューを書く | RiceChain`,
     description: '商品のレビューを投稿して、KomePon値引きを獲得しましょう。',
   };
 }
 
-export default function ReviewPage({ params }: { params: { orderId: string } }) {
-  const order = mockOrders.find((o) => o.id === params.orderId);
-  
+export default async function ReviewPage({ params }: { params: { orderId: string } }) {
+  const order = await blockchainService.getOrderById(params.orderId);
+
   if (!order) {
     notFound();
   }
-  
+
   // レビュー済みの場合はエラーページを表示
   if (order.reviewSubmitted) {
     return (
@@ -45,7 +45,7 @@ export default function ReviewPage({ params }: { params: { orderId: string } }) 
       </div>
     );
   }
-  
+
   // 完了していない注文の場合もエラーページを表示
   if (order.status !== 'completed') {
     return (
@@ -62,7 +62,7 @@ export default function ReviewPage({ params }: { params: { orderId: string } }) 
       </div>
     );
   }
-  
+
   return (
     <div className="space-y-8">
       <div>
@@ -71,7 +71,7 @@ export default function ReviewPage({ params }: { params: { orderId: string } }) 
           商品のレビューを投稿して、次回購入時に使えるKomePon値引きを獲得しましょう。
         </p>
       </div>
-      
+
       <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
         <div className="md:col-span-2">
           <Card>
@@ -102,7 +102,7 @@ export default function ReviewPage({ params }: { params: { orderId: string } }) 
                   ))}
                 </div>
               </div>
-              
+
               <div>
                 <label htmlFor="title" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                   タイトル
@@ -114,7 +114,7 @@ export default function ReviewPage({ params }: { params: { orderId: string } }) 
                   placeholder="レビューのタイトルを入力してください"
                 />
               </div>
-              
+
               <div>
                 <label htmlFor="content" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                   レビュー内容
@@ -129,7 +129,7 @@ export default function ReviewPage({ params }: { params: { orderId: string } }) 
                   最低100文字以上入力してください。KomePon値引きを獲得するには、具体的な感想や使用感を詳しく書くことをおすすめします。
                 </p>
               </div>
-              
+
               <div>
                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                   写真を追加（任意）
@@ -181,7 +181,7 @@ export default function ReviewPage({ params }: { params: { orderId: string } }) 
             </CardFooter>
           </Card>
         </div>
-        
+
         <div>
           <Card>
             <CardHeader>
@@ -213,7 +213,7 @@ export default function ReviewPage({ params }: { params: { orderId: string } }) 
               ))}
             </CardContent>
           </Card>
-          
+
           <Card className="mt-6">
             <CardHeader>
               <CardTitle>KomePonについて</CardTitle>

@@ -4,34 +4,61 @@ import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
-import { mockProducts, mockReviewListItems } from '@/lib/mock-data';
+import { blockchainService } from '@/lib/blockchain-service';
 import { Product } from '@/types/product';
+import { ReviewListItem } from '@/types/review';
 
 export async function generateMetadata({ params }: { params: { id: string } }) {
-  const product = mockProducts.find((p) => p.id === params.id);
-  
+  const product = await blockchainService.getProductById(params.id);
+
   if (!product) {
     return {
       title: '商品が見つかりません | RiceChain',
       description: '指定された商品は存在しないか、削除された可能性があります。',
     };
   }
-  
+
   return {
     title: `${product.name} | RiceChain`,
     description: product.description,
   };
 }
 
-export default function ProductDetailPage({ params }: { params: { id: string } }) {
-  const product = mockProducts.find((p) => p.id === params.id);
-  
+export default async function ProductDetailPage({ params }: { params: { id: string } }) {
+  const product = await blockchainService.getProductById(params.id);
+
   if (!product) {
     notFound();
   }
-  
-  const reviews = mockReviewListItems.filter((r) => r.productId === params.id);
-  
+
+  const reviews = await blockchainService.getReviewsByProductId(params.id);
+  const reviewListItems: ReviewListItem[] = reviews.map(review => ({
+    id: review.id,
+    productId: review.productId,
+    rating: review.rating,
+    title: review.title,
+    content: review.content,
+    imageUrls: review.imageUrls,
+    likes: review.likes,
+    createdAt: review.createdAt,
+    user: {
+      id: review.user.id,
+      name: review.user.name,
+      avatarUrl: review.user.avatarUrl,
+    },
+    product: {
+      id: review.product.id,
+      name: review.product.name,
+      imageUrl: review.product.imageUrl,
+    },
+  }));
+
+  // Get related products (excluding current product)
+  const allProducts = await blockchainService.getProducts();
+  const relatedProducts = allProducts
+    .filter((p) => p.id !== product.id)
+    .slice(0, 4);
+
   return (
     <div className="space-y-8">
       <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
@@ -50,7 +77,7 @@ export default function ProductDetailPage({ params }: { params: { id: string } }
             </div>
           )}
         </div>
-        
+
         {/* 商品情報 */}
         <div className="space-y-6">
           <div>
@@ -64,17 +91,16 @@ export default function ProductDetailPage({ params }: { params: { id: string } }
               {product.name}
             </h1>
           </div>
-          
+
           <div className="flex items-center">
             <div className="flex items-center">
               {[...Array(5)].map((_, i) => (
                 <svg
                   key={i}
-                  className={`w-5 h-5 ${
-                    i < Math.floor(product.rating)
+                  className={`w-5 h-5 ${i < Math.floor(product.rating)
                       ? 'text-yellow-400'
                       : 'text-gray-300 dark:text-gray-600'
-                  }`}
+                    }`}
                   fill="currentColor"
                   viewBox="0 0 20 20"
                   xmlns="http://www.w3.org/2000/svg"
@@ -87,11 +113,11 @@ export default function ProductDetailPage({ params }: { params: { id: string } }
               {product.rating} ({product.reviewCount}件のレビュー)
             </span>
           </div>
-          
+
           <p className="text-gray-700 dark:text-gray-300">
             {product.description}
           </p>
-          
+
           <div className="border-t border-b border-gray-200 dark:border-gray-700 py-4">
             {product.hasKomePon && product.komePonPrice ? (
               <div className="space-y-1">
@@ -102,7 +128,7 @@ export default function ProductDetailPage({ params }: { params: { id: string } }
                   KomePon価格: {new Intl.NumberFormat('ja-JP', { style: 'currency', currency: 'JPY' }).format(product.komePonPrice)}
                 </p>
                 <p className="text-sm text-primary-600 dark:text-primary-400">
-                  {Math.round((1 - product.komePonPrice! / product.price) * 100)}%OFF
+                  {Math.round((1 - product.komePonPrice / product.price) * 100)}%OFF
                 </p>
               </div>
             ) : (
@@ -111,7 +137,7 @@ export default function ProductDetailPage({ params }: { params: { id: string } }
               </p>
             )}
           </div>
-          
+
           <div className="space-y-4">
             <div className="flex items-center">
               <span className="text-gray-700 dark:text-gray-300 mr-2">数量:</span>
@@ -123,7 +149,7 @@ export default function ProductDetailPage({ params }: { params: { id: string } }
                 ))}
               </select>
             </div>
-            
+
             <div className="flex space-x-4">
               <Button
                 variant={product.available ? 'default' : 'outline'}
@@ -132,7 +158,7 @@ export default function ProductDetailPage({ params }: { params: { id: string } }
               >
                 {product.available ? 'カートに追加' : '在庫切れ'}
               </Button>
-              
+
               <Button variant="outline">
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
@@ -153,7 +179,7 @@ export default function ProductDetailPage({ params }: { params: { id: string } }
           </div>
         </div>
       </div>
-      
+
       {/* 商品詳細 */}
       <div className="mt-12">
         <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-6">商品詳細</h2>
@@ -193,7 +219,7 @@ export default function ProductDetailPage({ params }: { params: { id: string } }
               </dl>
             </CardContent>
           </Card>
-          
+
           <Card>
             <CardContent className="p-6">
               <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">生産者情報</h3>
@@ -216,11 +242,10 @@ export default function ProductDetailPage({ params }: { params: { id: string } }
                   {[...Array(5)].map((_, i) => (
                     <svg
                       key={i}
-                      className={`w-4 h-4 ${
-                        i < Math.floor(product.farmer.rating)
+                      className={`w-4 h-4 ${i < Math.floor(product.farmer.rating)
                           ? 'text-yellow-400'
                           : 'text-gray-300 dark:text-gray-600'
-                      }`}
+                        }`}
                       fill="currentColor"
                       viewBox="0 0 20 20"
                       xmlns="http://www.w3.org/2000/svg"
@@ -243,7 +268,7 @@ export default function ProductDetailPage({ params }: { params: { id: string } }
           </Card>
         </div>
       </div>
-      
+
       {/* レビュー */}
       <div className="mt-12">
         <div className="flex justify-between items-center mb-6">
@@ -255,10 +280,10 @@ export default function ProductDetailPage({ params }: { params: { id: string } }
             すべてのレビューを見る
           </Link>
         </div>
-        
-        {reviews.length > 0 ? (
+
+        {reviewListItems.length > 0 ? (
           <div className="space-y-6">
-            {reviews.slice(0, 3).map((review) => (
+            {reviewListItems.slice(0, 3).map((review) => (
               <Card key={review.id}>
                 <CardContent className="p-6">
                   <div className="flex justify-between mb-2">
@@ -282,11 +307,10 @@ export default function ProductDetailPage({ params }: { params: { id: string } }
                       {[...Array(5)].map((_, i) => (
                         <svg
                           key={i}
-                          className={`w-4 h-4 ${
-                            i < review.rating
+                          className={`w-4 h-4 ${i < review.rating
                               ? 'text-yellow-400'
                               : 'text-gray-300 dark:text-gray-600'
-                          }`}
+                            }`}
                           fill="currentColor"
                           viewBox="0 0 20 20"
                           xmlns="http://www.w3.org/2000/svg"
@@ -298,7 +322,7 @@ export default function ProductDetailPage({ params }: { params: { id: string } }
                   </div>
                   <h4 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">{review.title}</h4>
                   <p className="text-gray-700 dark:text-gray-300 mb-4">{review.content}</p>
-                  
+
                   {review.imageUrls && review.imageUrls.length > 0 && (
                     <div className="flex space-x-2 mt-3">
                       {review.imageUrls.map((url, index) => (
@@ -308,7 +332,7 @@ export default function ProductDetailPage({ params }: { params: { id: string } }
                       ))}
                     </div>
                   )}
-                  
+
                   <div className="flex items-center mt-4">
                     <button className="flex items-center text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300">
                       <svg
@@ -340,35 +364,32 @@ export default function ProductDetailPage({ params }: { params: { id: string } }
           </Card>
         )}
       </div>
-      
+
       {/* おすすめ商品 */}
       <div className="mt-12">
         <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-6">おすすめ商品</h2>
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-          {mockProducts
-            .filter((p) => p.id !== product.id)
-            .slice(0, 4)
-            .map((relatedProduct) => (
-              <Link key={relatedProduct.id} href={`/products/${relatedProduct.id}`}>
-                <div className="group">
-                  <div className="relative h-48 rounded-lg overflow-hidden mb-3">
-                    <Image
-                      src={relatedProduct.imageUrl}
-                      alt={relatedProduct.name}
-                      fill
-                      className="object-cover group-hover:scale-105 transition-transform duration-300"
-                    />
-                  </div>
-                  <h3 className="font-medium text-gray-900 dark:text-white group-hover:text-primary-600 dark:group-hover:text-primary-400 transition-colors">
-                    {relatedProduct.name}
-                  </h3>
-                  <p className="text-sm text-gray-600 dark:text-gray-400">{relatedProduct.farmer.name}</p>
-                  <p className="font-bold text-gray-900 dark:text-white mt-1">
-                    {new Intl.NumberFormat('ja-JP', { style: 'currency', currency: 'JPY' }).format(relatedProduct.price)}
-                  </p>
+          {relatedProducts.map((relatedProduct) => (
+            <Link key={relatedProduct.id} href={`/products/${relatedProduct.id}`}>
+              <div className="group">
+                <div className="relative h-48 rounded-lg overflow-hidden mb-3">
+                  <Image
+                    src={relatedProduct.imageUrl}
+                    alt={relatedProduct.name}
+                    fill
+                    className="object-cover group-hover:scale-105 transition-transform duration-300"
+                  />
                 </div>
-              </Link>
-            ))}
+                <h3 className="font-medium text-gray-900 dark:text-white group-hover:text-primary-600 dark:group-hover:text-primary-400 transition-colors">
+                  {relatedProduct.name}
+                </h3>
+                <p className="text-sm text-gray-600 dark:text-gray-400">{relatedProduct.farmer.name}</p>
+                <p className="font-bold text-gray-900 dark:text-white mt-1">
+                  {new Intl.NumberFormat('ja-JP', { style: 'currency', currency: 'JPY' }).format(relatedProduct.price)}
+                </p>
+              </div>
+            </Link>
+          ))}
         </div>
       </div>
     </div>

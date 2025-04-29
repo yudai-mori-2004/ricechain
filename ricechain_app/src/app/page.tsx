@@ -3,27 +3,31 @@ import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import ProductCard from '@/components/ui/product-card';
-import { mockProductListItems, mockFarmerListItems } from '@/lib/mock-data';
+import { blockchainService } from '@/lib/blockchain-service';
 
 export const metadata = {
   title: 'RiceChain - 農家から消費者への直接販売米流通プラットフォーム',
   description: '良いお米を作る農家が評価され、消費者はそれをより安く手に入れる好循環の創出を目指すプラットフォーム',
 };
 
-export default function Home() {
+export default async function Home() {
+  // Get data from blockchain service
+  const productListItems = await blockchainService.getProductListItems();
+  const farmerListItems = await blockchainService.getFarmerListItems();
+
   // 特集商品（KomePon対象商品）
-  const featuredProducts = mockProductListItems.filter(product => product.hasKomePon).slice(0, 4);
-  
+  const featuredProducts = productListItems.filter(product => product.hasKomePon).slice(0, 4);
+
   // 新着商品
-  const newProducts = mockProductListItems.slice(0, 4);
-  
+  const newProducts = productListItems.slice(0, 4);
+
   // 人気の農家
-  const popularFarmers = [...mockFarmerListItems].sort((a, b) => b.rating - a.rating).slice(0, 3);
-  
+  const popularFarmers = [...farmerListItems].sort((a, b) => b.rating - a.rating).slice(0, 3);
+
   return (
     <div className="space-y-16">
       {/* ヒーローセクション */}
-      <section className="relative h-[500px] -mt-8 -mx-4 sm:-mx-8 lg:-mx-16">
+      <section className="relative h-[500px] -mx-4 -mt-8">
         <div className="absolute inset-0">
           <Image
             src="https://images.unsplash.com/photo-1500382017468-9049fed747ef?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=2070&q=80"
@@ -34,8 +38,8 @@ export default function Home() {
           />
           <div className="absolute inset-0 bg-black bg-opacity-40"></div>
         </div>
-        <div className="relative h-full flex flex-col justify-center items-center text-center px-4 sm:px-6 lg:px-8">
-          <h1 className="text-4xl sm:text-5xl md:text-6xl font-bold text-white mb-6">
+        <div className="relative h-full flex flex-col justify-center items-center text-center px-7 sm:px-5 lg:px-12">
+          <h1 className="text-3xl sm:text-4xl md:text-5xl font-bold text-white mb-6">
             農家から直接、美味しいお米を
           </h1>
           <p className="text-xl text-white mb-8 max-w-3xl">
@@ -53,9 +57,9 @@ export default function Home() {
           </div>
         </div>
       </section>
-      
+
       {/* KomePon説明セクション */}
-      <section className="bg-primary-50 dark:bg-primary-900/20 -mx-4 sm:-mx-8 lg:-mx-16 px-4 sm:px-8 lg:px-16 py-16">
+      <section className="bg-primary-50 dark:bg-primary-900/20 px-4 sm:px-8 lg:px-16 py-16">
         <div className="max-w-7xl mx-auto">
           <div className="text-center mb-12">
             <h2 className="text-3xl font-bold text-gray-900 dark:text-white mb-4">
@@ -66,7 +70,7 @@ export default function Home() {
               品質向上と消費者参加を促す好循環を生み出します。
             </p>
           </div>
-          
+
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
             <Card>
               <CardContent className="p-6 text-center">
@@ -83,7 +87,7 @@ export default function Home() {
                 </p>
               </CardContent>
             </Card>
-            
+
             <Card>
               <CardContent className="p-6 text-center">
                 <div className="w-16 h-16 bg-primary-100 dark:bg-primary-800 rounded-full flex items-center justify-center mx-auto mb-4">
@@ -99,7 +103,7 @@ export default function Home() {
                 </p>
               </CardContent>
             </Card>
-            
+
             <Card>
               <CardContent className="p-6 text-center">
                 <div className="w-16 h-16 bg-primary-100 dark:bg-primary-800 rounded-full flex items-center justify-center mx-auto mb-4">
@@ -118,7 +122,7 @@ export default function Home() {
           </div>
         </div>
       </section>
-      
+
       {/* 特集商品セクション */}
       <section>
         <div className="flex justify-between items-center mb-8">
@@ -129,7 +133,7 @@ export default function Home() {
             すべて見る
           </Link>
         </div>
-        
+
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
           {featuredProducts.map((product) => (
             <ProductCard
@@ -150,7 +154,7 @@ export default function Home() {
           ))}
         </div>
       </section>
-      
+
       {/* 新着商品セクション */}
       <section>
         <div className="flex justify-between items-center mb-8">
@@ -161,7 +165,7 @@ export default function Home() {
             すべて見る
           </Link>
         </div>
-        
+
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
           {newProducts.map((product) => (
             <ProductCard
@@ -182,7 +186,7 @@ export default function Home() {
           ))}
         </div>
       </section>
-      
+
       {/* 人気の農家セクション */}
       <section>
         <div className="flex justify-between items-center mb-8">
@@ -193,17 +197,17 @@ export default function Home() {
             すべて見る
           </Link>
         </div>
-        
+
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
           {popularFarmers.map((farmer) => (
             <Link key={farmer.id} href={`/farmers/${farmer.id}`}>
               <Card className="h-full overflow-hidden hover:shadow-lg transition-shadow">
-                <div className="relative h-48 w-full">
+                <div className="relative h-48 w-full max-w-full overflow-hidden">
                   <Image
                     src={farmer.imageUrl}
                     alt={farmer.name}
                     fill
-                    className="object-cover"
+                    className="object-cover object-center"
                   />
                 </div>
                 <CardContent className="p-6">
@@ -218,11 +222,10 @@ export default function Home() {
                       {[...Array(5)].map((_, i) => (
                         <svg
                           key={i}
-                          className={`w-4 h-4 ${
-                            i < Math.floor(farmer.rating)
-                              ? 'text-yellow-400'
-                              : 'text-gray-300 dark:text-gray-600'
-                          }`}
+                          className={`w-4 h-4 ${i < Math.floor(farmer.rating)
+                            ? 'text-yellow-400'
+                            : 'text-gray-300 dark:text-gray-600'
+                            }`}
                           fill="currentColor"
                           viewBox="0 0 20 20"
                           xmlns="http://www.w3.org/2000/svg"
@@ -254,9 +257,9 @@ export default function Home() {
           ))}
         </div>
       </section>
-      
+
       {/* CTAセクション */}
-      <section className="bg-primary-600 -mx-4 sm:-mx-8 lg:-mx-16 px-4 sm:px-8 lg:px-16 py-16 text-white">
+      <section className="bg-primary-600 px-4 sm:px-8 lg:px-16 py-16 text-white">
         <div className="max-w-4xl mx-auto text-center">
           <h2 className="text-3xl font-bold mb-4">
             RiceChainで美味しいお米を見つけよう

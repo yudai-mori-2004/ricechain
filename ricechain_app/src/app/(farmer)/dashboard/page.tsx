@@ -3,20 +3,20 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { mockFarmers, mockProducts, mockOrders } from '@/lib/mock-data';
+import { blockchainService } from '@/lib/blockchain-service';
 
 export const metadata = {
   title: '農家ダッシュボード | RiceChain',
   description: '農家向けダッシュボードで売上や注文を管理します。',
 };
 
-export default function FarmerDashboardPage() {
+export default async function FarmerDashboardPage() {
   // 農家ID（実際のアプリではログインユーザーから取得）
   const farmerId = 'f1';
-  
+
   // 農家情報
-  const farmer = mockFarmers.find(f => f.id === farmerId);
-  
+  const farmer = await blockchainService.getFarmerById(farmerId);
+
   if (!farmer) {
     return (
       <div className="text-center py-12">
@@ -29,20 +29,19 @@ export default function FarmerDashboardPage() {
       </div>
     );
   }
-  
+
   // 農家の商品
-  const farmerProducts = mockProducts.filter(p => p.farmer.id === farmerId);
-  
+  const allProducts = await blockchainService.getProducts();
+  const farmerProducts = allProducts.filter(p => p.farmer.id === farmerId);
+
   // 農家の注文
-  const farmerOrders = mockOrders.filter(o => 
-    o.items.some(item => item.farmerId === farmerId)
-  );
-  
+  const farmerOrders = await blockchainService.getOrdersByFarmerId(farmerId);
+
   // 最近の注文（最新5件）
   const recentOrders = [...farmerOrders]
     .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
     .slice(0, 5);
-  
+
   // 売上データ（実際のアプリではAPIから取得）
   const salesData = {
     today: 12500,
@@ -50,18 +49,18 @@ export default function FarmerDashboardPage() {
     month: 350000,
     total: 1250000,
   };
-  
+
   // KomePon使用状況
   const komePonData = {
     budget: farmer.komePonBudget || 0,
-    used: farmer.komePonSettings?.maxRedemptions 
+    used: farmer.komePonSettings?.maxRedemptions
       ? (farmer.komePonSettings.maxRedemptions - farmer.komePonSettings.remainingRedemptions) * farmer.komePonSettings.discountAmount
       : 0,
-    remaining: farmer.komePonSettings?.remainingRedemptions 
+    remaining: farmer.komePonSettings?.remainingRedemptions
       ? farmer.komePonSettings.remainingRedemptions * farmer.komePonSettings.discountAmount
       : 0,
   };
-  
+
   return (
     <div className="space-y-8">
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
@@ -93,7 +92,7 @@ export default function FarmerDashboardPage() {
           </Link>
         </div>
       </div>
-      
+
       {/* 売上サマリー */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
         <Card>
@@ -106,7 +105,7 @@ export default function FarmerDashboardPage() {
             </div>
           </CardContent>
         </Card>
-        
+
         <Card>
           <CardContent className="p-6">
             <div className="flex flex-col">
@@ -117,7 +116,7 @@ export default function FarmerDashboardPage() {
             </div>
           </CardContent>
         </Card>
-        
+
         <Card>
           <CardContent className="p-6">
             <div className="flex flex-col">
@@ -128,7 +127,7 @@ export default function FarmerDashboardPage() {
             </div>
           </CardContent>
         </Card>
-        
+
         <Card>
           <CardContent className="p-6">
             <div className="flex flex-col">
@@ -140,7 +139,7 @@ export default function FarmerDashboardPage() {
           </CardContent>
         </Card>
       </div>
-      
+
       {/* KomePon状況 */}
       <Card>
         <CardHeader>
@@ -154,14 +153,14 @@ export default function FarmerDashboardPage() {
                 {farmer.komePonRank || '-'}位
               </p>
             </div>
-            
+
             <div>
               <p className="text-sm text-gray-500 dark:text-gray-400 mb-1">KomePon予算</p>
               <p className="text-xl font-bold text-gray-900 dark:text-white">
                 {new Intl.NumberFormat('ja-JP', { style: 'currency', currency: 'JPY' }).format(komePonData.budget)}
               </p>
             </div>
-            
+
             <div>
               <p className="text-sm text-gray-500 dark:text-gray-400 mb-1">残り予算</p>
               <p className="text-xl font-bold text-gray-900 dark:text-white">
@@ -169,7 +168,7 @@ export default function FarmerDashboardPage() {
               </p>
             </div>
           </div>
-          
+
           <div className="mt-6">
             <div className="flex justify-between mb-2">
               <span className="text-sm text-gray-500 dark:text-gray-400">予算使用状況</span>
@@ -184,7 +183,7 @@ export default function FarmerDashboardPage() {
               ></div>
             </div>
           </div>
-          
+
           <div className="mt-6">
             <Link href="/farmer/komepon">
               <Button variant="outline" className="w-full sm:w-auto">
@@ -194,7 +193,7 @@ export default function FarmerDashboardPage() {
           </div>
         </CardContent>
       </Card>
-      
+
       {/* 最近の注文と商品 */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
         {/* 最近の注文 */}
@@ -211,7 +210,7 @@ export default function FarmerDashboardPage() {
                 {recentOrders.map((order) => {
                   const orderItems = order.items.filter(item => item.farmerId === farmerId);
                   const orderTotal = orderItems.reduce((sum, item) => sum + (item.price * item.quantity), 0);
-                  
+
                   return (
                     <div key={order.id} className="flex items-center justify-between border-b border-gray-200 dark:border-gray-700 pb-4 last:border-0 last:pb-0">
                       <div className="flex items-center">
@@ -241,17 +240,16 @@ export default function FarmerDashboardPage() {
                         <p className="font-medium text-gray-900 dark:text-white">
                           {new Intl.NumberFormat('ja-JP', { style: 'currency', currency: 'JPY' }).format(orderTotal)}
                         </p>
-                        <span className={`text-xs px-2 py-1 rounded-full ${
-                          order.status === 'completed' ? 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300' :
-                          order.status === 'shipped' ? 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-300' :
-                          order.status === 'processing' ? 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-300' :
-                          'bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-300'
-                        }`}>
+                        <span className={`text-xs px-2 py-1 rounded-full ${order.status === 'completed' ? 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300' :
+                            order.status === 'shipped' ? 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-300' :
+                              order.status === 'processing' ? 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-300' :
+                                'bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-300'
+                          }`}>
                           {order.status === 'completed' ? '完了' :
-                           order.status === 'shipped' ? '発送済み' :
-                           order.status === 'processing' ? '処理中' :
-                           order.status === 'pending_payment' ? '支払い待ち' :
-                           '不明'}
+                            order.status === 'shipped' ? '発送済み' :
+                              order.status === 'processing' ? '処理中' :
+                                order.status === 'pending_payment' ? '支払い待ち' :
+                                  '不明'}
                         </span>
                       </div>
                     </div>
@@ -265,7 +263,7 @@ export default function FarmerDashboardPage() {
             )}
           </CardContent>
         </Card>
-        
+
         {/* 商品一覧 */}
         <Card>
           <CardHeader className="flex flex-row items-center justify-between">
@@ -297,11 +295,10 @@ export default function FarmerDashboardPage() {
                             {[...Array(5)].map((_, i) => (
                               <svg
                                 key={i}
-                                className={`w-3 h-3 ${
-                                  i < Math.floor(product.rating)
+                                className={`w-3 h-3 ${i < Math.floor(product.rating)
                                     ? 'text-yellow-400'
                                     : 'text-gray-300 dark:text-gray-600'
-                                }`}
+                                  }`}
                                 fill="currentColor"
                                 viewBox="0 0 20 20"
                                 xmlns="http://www.w3.org/2000/svg"

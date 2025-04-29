@@ -1,36 +1,124 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# RiceChain - 農家から消費者への直接販売米流通プラットフォーム
 
-## Getting Started
+RiceChainは、「良いお米を作る農家が評価され、消費者はそれをより安く手に入れる」好循環の創出を目指すプラットフォームです。Solanaブロックチェーンを活用して、透明性の高い取引と独自のKomePonシステムによる価値還元を実現します。
 
-First, run the development server:
+## 概要
+
+RiceChainは以下の特徴を持つプラットフォームです：
+
+- **直接取引**: 農家から消費者への直接販売により、中間マージンを削減
+- **KomePonシステム**: レビューを書くと次回購入時に値引きが受けられる仕組み
+- **ブロックチェーン活用**: Solanaを利用した安全な取引とエスクローシステム
+- **評価システム**: 良質な米を作る農家が適切に評価される仕組み
+
+## 技術スタック
+
+- **フロントエンド**: Next.js, React, TypeScript, Tailwind CSS
+- **ブロックチェーン**: Solana
+- **その他**: Vercel (デプロイ)
+
+## 開発環境のセットアップ
 
 ```bash
+# リポジトリのクローン
+git clone https://github.com/your-username/ricechain.git
+cd ricechain
+
+# 依存関係のインストール
+npm install
+
+# 開発サーバーの起動
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## モックデータとブロックチェーンデータの切り替え
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+このプロジェクトでは、開発とテストを容易にするために、モックデータとブロックチェーンデータを簡単に切り替えることができます。
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+### 切り替え方法
 
-## Learn More
+`src/lib/blockchain-service.ts` ファイルの先頭にある `USE_BLOCKCHAIN_DATA` フラグを変更します：
 
-To learn more about Next.js, take a look at the following resources:
+```typescript
+// モックデータを使用する場合
+const USE_BLOCKCHAIN_DATA = false;
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+// ブロックチェーンデータを使用する場合
+const USE_BLOCKCHAIN_DATA = true;
+```
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+### データソース
 
-## Deploy on Vercel
+- **モックデータ**: `src/lib/mock-data.ts` に定義されたデータを使用します。
+- **ブロックチェーンデータ**: Solanaブロックチェーンから実際のデータを取得します。実装は `src/lib/solana-utils.ts` にあります。
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+## 主要機能
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+### 消費者向け機能
+
+- 商品一覧・詳細表示
+- 商品検索・フィルタリング
+- 注文・決済
+- レビュー投稿
+- KomePon値引きの利用
+
+### 農家向け機能
+
+- ダッシュボード
+- 商品管理
+- 注文管理
+- KomePon設定
+
+## プロジェクト構造
+
+```
+src/
+├── app/                  # Next.js App Router
+│   ├── (consumer)/       # 消費者向けページ
+│   ├── (farmer)/         # 農家向けページ
+│   └── layout.tsx        # 共通レイアウト
+├── components/           # 再利用可能なコンポーネント
+│   ├── layout/           # レイアウト関連コンポーネント
+│   └── ui/               # UI コンポーネント
+├── lib/                  # ユーティリティ関数
+│   ├── blockchain-service.ts  # ブロックチェーンサービス
+│   ├── mock-data.ts      # モックデータ
+│   └── solana-utils.ts   # Solana関連ユーティリティ
+├── styles/               # グローバルスタイル
+└── types/                # TypeScript型定義
+```
+
+## KomePonシステムについて
+
+KomePonは、「レビューを書くと次回購入時に値引きが受けられる」システムです。単なる値引きではなく、品質向上と消費者参加を促す仕組みとなっています。
+
+### 仕組み
+
+1. 消費者が商品を購入
+2. 商品のレビューを投稿
+3. AIによる内容チェックに合格すると、KomePon値引き権利を獲得
+4. 次回購入時に値引きが適用される
+
+### 農家側の設定
+
+農家は以下の設定を行うことができます：
+
+- 1件あたりの値引き額
+- 値引き枠数
+
+これらの設定により、予算内で効果的なマーケティングを行うことができます。
+
+## 今後の開発計画
+
+- 共同購入機能
+- AIによる品質分析
+- コミュニティガバナンス機能
+- 他の農産物カテゴリへの拡大
+
+## ライセンス
+
+MIT
+
+## 貢献
+
+プルリクエストやイシューの作成は大歓迎です。大きな変更を加える場合は、まずイシューを作成して議論してください。

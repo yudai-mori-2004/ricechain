@@ -40,19 +40,19 @@ const ProductCard: React.FC<ProductCardProps> = ({
 
   const formattedKomePonPrice = komePonPrice
     ? new Intl.NumberFormat('ja-JP', {
-        style: 'currency',
-        currency: 'JPY',
-      }).format(komePonPrice)
+      style: 'currency',
+      currency: 'JPY',
+    }).format(komePonPrice)
     : null;
 
   return (
     <Card className="h-full flex flex-col">
-      <div className="relative h-48 w-full">
+      <div className="relative h-48 w-full max-w-full overflow-hidden">
         <Image
           src={imageUrl || '/placeholder-rice.jpg'}
           alt={name}
           fill
-          className="object-cover"
+          className="object-cover object-center"
         />
         {hasKomePon && komePonPrice && (
           <div className="absolute top-2 right-2 bg-primary-600 text-white px-2 py-1 rounded-md text-xs font-bold">
@@ -79,11 +79,10 @@ const ProductCard: React.FC<ProductCardProps> = ({
             {[...Array(5)].map((_, i) => (
               <svg
                 key={i}
-                className={`w-4 h-4 ${
-                  i < Math.floor(rating)
+                className={`w-4 h-4 ${i < Math.floor(rating)
                     ? 'text-yellow-400'
                     : 'text-gray-300 dark:text-gray-600'
-                }`}
+                  }`}
                 fill="currentColor"
                 viewBox="0 0 20 20"
                 xmlns="http://www.w3.org/2000/svg"
