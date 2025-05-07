@@ -11,7 +11,7 @@ const Card = React.forwardRef<HTMLDivElement, CardProps>(
       <div
         ref={ref}
         className={cn(
-          'bg-white dark:bg-gray-800 rounded-lg shadow-md overflow-hidden',
+          'bg-background dark:bg-text rounded-lg shadow-md overflow-hidden',
           className
         )}
         {...props}
@@ -33,7 +33,7 @@ const CardHeader = React.forwardRef<HTMLDivElement, CardHeaderProps>(
     return (
       <div
         ref={ref}
-        className={cn('p-6 border-b border-gray-200 dark:border-gray-700', className)}
+        className={cn('p-6 border-b border-primary/20 dark:border-primary/40', className)}
         {...props}
       >
         {children}
@@ -53,7 +53,7 @@ const CardTitle = React.forwardRef<HTMLHeadingElement, CardTitleProps>(
     return (
       <h3
         ref={ref}
-        className={cn('text-xl font-semibold text-gray-900 dark:text-white', className)}
+        className={cn('text-xl font-semibold text-text dark:text-background', className)}
         {...props}
       >
         {children}
@@ -73,7 +73,7 @@ const CardDescription = React.forwardRef<HTMLParagraphElement, CardDescriptionPr
     return (
       <p
         ref={ref}
-        className={cn('text-sm text-gray-500 dark:text-gray-400', className)}
+        className={cn('text-sm text-text/70 dark:text-background/70', className)}
         {...props}
       >
         {children}
@@ -109,7 +109,7 @@ const CardFooter = React.forwardRef<HTMLDivElement, CardFooterProps>(
     return (
       <div
         ref={ref}
-        className={cn('p-6 border-t border-gray-200 dark:border-gray-700', className)}
+        className={cn('p-6 border-t border-primary/20 dark:border-primary/40', className)}
         {...props}
       >
         {children}

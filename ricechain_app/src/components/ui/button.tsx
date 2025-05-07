@@ -10,19 +10,19 @@ export interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
 const getVariantClasses = (variant: ButtonProps['variant']) => {
   switch (variant) {
     case 'default':
-      return 'bg-primary-600 text-white hover:bg-primary-700 focus-visible:ring-primary-500';
+      return 'bg-accent1 text-text hover:bg-accent2 focus-visible:ring-accent1';
     case 'secondary':
-      return 'bg-secondary-600 text-white hover:bg-secondary-700 focus-visible:ring-secondary-500';
+      return 'bg-primary text-white hover:bg-accent2 focus-visible:ring-primary';
     case 'outline':
-      return 'border border-gray-300 bg-transparent hover:bg-gray-100 dark:hover:bg-gray-800 focus-visible:ring-gray-400';
+      return 'border border-primary bg-transparent hover:bg-accent2 hover:text-white hover:border-accent2 focus-visible:ring-primary';
     case 'ghost':
-      return 'bg-transparent hover:bg-gray-100 dark:hover:bg-gray-800 focus-visible:ring-gray-400';
+      return 'bg-transparent hover:bg-primary/10 focus-visible:ring-primary';
     case 'link':
-      return 'bg-transparent underline-offset-4 hover:underline text-primary-600 dark:text-primary-400 hover:bg-transparent';
+      return 'bg-transparent underline-offset-4 hover:underline text-text hover:text-accent2 hover:bg-transparent';
     case 'destructive':
       return 'bg-red-600 text-white hover:bg-red-700 focus-visible:ring-red-500';
     default:
-      return 'bg-primary-600 text-white hover:bg-primary-700 focus-visible:ring-primary-500';
+      return 'bg-accent1 text-text hover:bg-accent2 focus-visible:ring-accent1';
   }
 };
 

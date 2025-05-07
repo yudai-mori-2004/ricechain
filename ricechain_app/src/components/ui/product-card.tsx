@@ -2,41 +2,34 @@ import React from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { Card, CardContent, CardFooter } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
+import type { Product, User } from '@prisma/client';
+
+type ProductWithFarmer = Product & {
+  farmer: User;
+};
 
 interface ProductCardProps {
-  id: string;
-  name: string;
-  farmer: string;
-  farmerId: string;
-  description: string;
-  price: number;
+  product: ProductWithFarmer;
+  // Calculated properties
   komePonPrice?: number;
-  imageUrl: string;
-  rating: number;
-  reviewCount: number;
-  available: boolean;
-  hasKomePon?: boolean;
+  // Farmer-specific props
+  isForFarmer: boolean;
+  isEditing?: boolean;
+  isHidden?: boolean;
 }
 
 const ProductCard: React.FC<ProductCardProps> = ({
-  id,
-  name,
-  farmer,
-  farmerId,
-  description,
-  price,
+  product,
   komePonPrice,
-  imageUrl,
-  rating,
-  reviewCount,
-  available,
-  hasKomePon = false,
+  isForFarmer,
+  isEditing = false,
+  isHidden = false,
 }) => {
   const formattedPrice = new Intl.NumberFormat('ja-JP', {
     style: 'currency',
     currency: 'JPY',
-  }).format(price);
+  }).format(product.price);
 
   const formattedKomePonPrice = komePonPrice
     ? new Intl.NumberFormat('ja-JP', {
@@ -45,43 +38,69 @@ const ProductCard: React.FC<ProductCardProps> = ({
     }).format(komePonPrice)
     : null;
 
+  const hasKomePon = !!product.komePonDiscountRate;
+
   return (
     <Card className="h-full flex flex-col">
       <div className="relative h-48 w-full max-w-full overflow-hidden">
-        <Image
-          src={imageUrl || '/placeholder-rice.jpg'}
-          alt={name}
-          fill
-          className="object-cover object-center"
-        />
-        {hasKomePon && komePonPrice && (
-          <div className="absolute top-2 right-2 bg-primary-600 text-white px-2 py-1 rounded-md text-xs font-bold">
-            KomePon対象
-          </div>
-        )}
+        <Link href={isForFarmer ? `/farmer/products/${product.id}` : `/consumer/market/${product.id}`}>
+          <Image
+            src={product.imageUrl || '/placeholder-rice.jpg'}
+            alt={product.name}
+            fill
+            className={`object-cover object-center transition-opacity hover:opacity-90 ${isHidden ? 'opacity-60' : ''}`}
+          />
+        </Link>
+
+        {/* Status badges */}
+        <div className="absolute top-2 right-2 flex flex-col gap-1">
+          {!isForFarmer && hasKomePon && komePonPrice && (
+            <Badge variant="secondary" className="bg-accent1 text-text">
+              KomePon対象
+            </Badge>
+          )}
+
+          {isForFarmer && isEditing && (
+            <Badge variant="outline" className="bg-amber-100 text-amber-800 border-amber-300">
+              編集中
+            </Badge>
+          )}
+
+          {isForFarmer && isHidden && (
+            <Badge variant="outline" className="bg-gray-100 text-gray-800 border-gray-300">
+              非表示中
+            </Badge>
+          )}
+
+          {!product.available && (
+            <Badge variant="outline" className="bg-red-100 text-red-800 border-red-300">
+              在庫切れ
+            </Badge>
+          )}
+        </div>
       </div>
       <CardContent className="flex-grow">
         <div className="mb-2">
-          <Link href={`/products/${id}`} className="block">
-            <h3 className="text-lg font-semibold text-gray-900 dark:text-white hover:text-primary-600 dark:hover:text-primary-400 transition-colors">
-              {name}
+          <Link href={isForFarmer ? `/farmer/products/${product.id}` : `/consumer/market/${product.id}`} className="block">
+            <h3 className="text-lg font-semibold text-text dark:text-background hover:text-accent2 dark:hover:text-accent1 transition-colors">
+              {product.name}
             </h3>
           </Link>
-          <Link href={`/farmers/${farmerId}`} className="text-sm text-gray-600 dark:text-gray-400 hover:text-primary-600 dark:hover:text-primary-400 transition-colors">
-            {farmer}
+          <Link href={`/consumer/market/farmer/${product.farmerId}`} className="text-sm text-text/70 dark:text-background/70 hover:text-accent2 dark:hover:text-accent1 transition-colors">
+            {product.farmer.handleName || 'Unknown Farmer'}
           </Link>
         </div>
-        <p className="text-sm text-gray-500 dark:text-gray-400 line-clamp-2 mb-2">
-          {description}
+        <p className="text-sm text-text/60 dark:text-background/60 line-clamp-2 mb-2">
+          {product.description}
         </p>
         <div className="flex items-center mb-2">
           <div className="flex items-center">
             {[...Array(5)].map((_, i) => (
               <svg
                 key={i}
-                className={`w-4 h-4 ${i < Math.floor(rating)
-                    ? 'text-yellow-400'
-                    : 'text-gray-300 dark:text-gray-600'
+                className={`w-4 h-4 ${i < Math.floor(product.rating)
+                  ? 'text-accent1'
+                  : 'text-primary/30 dark:text-primary/20'
                   }`}
                 fill="currentColor"
                 viewBox="0 0 20 20"
@@ -91,35 +110,39 @@ const ProductCard: React.FC<ProductCardProps> = ({
               </svg>
             ))}
           </div>
-          <span className="text-xs text-gray-500 dark:text-gray-400 ml-1">
-            ({reviewCount})
+          <span className="text-xs text-text/50 dark:text-background/50 ml-1">
+            ({product.reviewCount})
           </span>
         </div>
-        <div className="mt-auto">
-          {hasKomePon && komePonPrice ? (
+        <div className="mt-auto space-y-2">
+          {/* Stock information (shown to both) */}
+          {product.stock !== undefined && (
+            <p className="text-xs text-text/60 dark:text-background/60">
+              残り: {product.stock}個
+            </p>
+          )}
+
+          {/* Price display */}
+          {!isForFarmer && hasKomePon && komePonPrice ? (
             <div className="space-y-1">
-              <p className="text-sm text-gray-500 dark:text-gray-400 line-through">
+              <p className="text-sm text-text/50 dark:text-background/50 line-through">
                 通常価格: {formattedPrice}
               </p>
-              <p className="text-lg font-bold text-primary-600 dark:text-primary-400">
+              <p className="text-lg font-bold text-accent2 dark:text-accent2">
                 KomePon価格: {formattedKomePonPrice}
               </p>
             </div>
           ) : (
-            <p className="text-lg font-bold text-gray-900 dark:text-white">
+            <p className="text-lg font-bold text-text dark:text-background">
               {formattedPrice}
             </p>
           )}
         </div>
       </CardContent>
-      <CardFooter>
-        <Button
-          fullWidth={true}
-          disabled={!available}
-          variant={available ? 'default' : 'outline'}
-        >
-          {available ? 'カートに追加' : '在庫切れ'}
-        </Button>
+      <CardFooter className="pt-0">
+        <div className="text-xs text-text/40 dark:text-background/40 w-full text-right">
+          詳細を見る →
+        </div>
       </CardFooter>
     </Card>
   );

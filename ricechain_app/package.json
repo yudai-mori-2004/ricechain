@@ -9,30 +9,52 @@
     "lint": "next lint"
   },
   "dependencies": {
-    "@haechi-labs/face-sdk": "^1.14.9",
-    "@haechi-labs/face-types": "^1.14.9",
+    "@hookform/resolvers": "^5.0.1",
+    "@prisma/client": "^6.7.0",
+    "@solana/wallet-adapter-base": "^0.9.26",
+    "@solana/wallet-adapter-react": "^0.15.38",
+    "@solana/wallet-adapter-react-ui": "^0.9.38",
+    "@solana/wallet-adapter-wallets": "^0.19.36",
+    "@solana/web3.js": "^1.98.2",
+    "@toruslabs/tweetnacl-js": "^1.0.4",
+    "@transak/transak-sdk": "^3.2.0",
+    "@web3auth/sign-in-with-solana": "^5.0.0",
     "autoprefixer": "10.4.14",
+    "bs58": "^6.0.0",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
+    "iron-session": "^8.0.4",
     "next": "15.3.1",
+    "pg": "^8.15.6",
     "postcss": "8.4.31",
-    "react": "^19.0.0",
-    "react-dom": "^19.0.0",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1",
+    "react-hook-form": "^7.56.1",
+    "swr": "^2.3.3",
     "tailwind-merge": "^3.2.0",
-    "tailwindcss": "3.3.3"
+    "tailwindcss": "3.3.3",
+    "tweetnacl": "^1.0.3",
+    "zod": "^3.24.3"
   },
   "devDependencies": {
     "@eslint/eslintrc": "^3",
     "@types/estree": "^1.0.7",
     "@types/json-schema": "^7.0.15",
     "@types/node": "^20.17.31",
-    "@types/react": "^19",
-    "@types/react-dom": "^19",
+    "@types/react": "^18.3.21",
+    "@types/react-dom": "^18.3.7",
     "eslint": "^9",
     "eslint-config-next": "15.3.1",
+    "prisma": "^6.7.0",
     "typescript": "^5"
   },
   "resolutions": {
-    "postcss": "8.4.31"
+    "postcss": "8.4.31",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1",
+    "@types/react": "^18",
+    "@types/react-dom": "^18",
+    "**/react": "^18.3.1",
+    "**/react-dom": "^18.3.1"
   }
 }

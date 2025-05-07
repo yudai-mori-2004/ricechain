@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { useAppContext } from '@/lib/app-context';
+import { useAppContext } from '@/contexts/app-context';
 
 const Navigation = () => {
   const pathname = usePathname();
@@ -11,45 +11,52 @@ const Navigation = () => {
   // Count active disputes that need jury
   const activeDisputesCount = disputes.filter(d => d.status === 'in_jury').length;
 
-  const isConsumerSection = pathname?.startsWith('/(consumer)') ||
-    pathname?.startsWith('/products') ||
-    pathname?.startsWith('/orders') ||
-    pathname?.startsWith('/review') ||
-    pathname?.startsWith('/disputes');
+  // Check if on root page - hide navigation on root
+  const isRootPage = pathname === '/';
+  if (isRootPage) {
+    return null;
+  }
 
-  const isFarmerSection = pathname?.startsWith('/(farmer)') ||
-    pathname?.startsWith('/dashboard') ||
-    pathname?.startsWith('/komepon');
+  // Clearly define separate paths for consumer vs farmer
+  const isConsumerSection = pathname?.startsWith('/consumer') ||
+    // Any path not in the farmer section is treated as consumer section
+    !(pathname?.startsWith('/farmer'));
+
+  const isFarmerSection = pathname?.startsWith('/farmer');
 
   const consumerLinks = [
-    { href: '/products', label: '商品一覧' },
-    { href: '/orders', label: '注文履歴' },
-    { 
-      href: '/disputes', 
-      label: '紛争解決', 
-      badge: activeDisputesCount > 0 ? activeDisputesCount : undefined 
+    { href: '/consumer/home', label: 'ホーム', badge: undefined },
+    { href: '/consumer/market', label: 'マーケット', badge: undefined },
+    { href: '/consumer/orders', label: '注文履歴', badge: undefined },
+    { href: '/consumer/review', label: 'レビューを書く', badge: undefined },
+    { href: '/consumer/wallet', label: 'ウォレット & チャージ', badge: undefined },
+    {
+      href: '/disputes',
+      label: 'トラブル解決に協力',
+      badge: activeDisputesCount > 0 ? activeDisputesCount : undefined
     },
   ];
 
   const farmerLinks = [
-    { href: '/dashboard', label: 'ダッシュボード' },
-    { href: '/products', label: '商品管理' },
-    { href: '/komepon', label: 'KomePon設定' },
-    { href: '/orders', label: '注文管理' },
-    { 
-      href: '/disputes', 
-      label: '紛争解決', 
-      badge: activeDisputesCount > 0 ? activeDisputesCount : undefined 
+    { href: '/farmer/home', label: 'ホーム', badge: undefined },
+    { href: '/farmer/products', label: '商品', badge: undefined },
+    { href: '/farmer/orders', label: '注文 & 発送', badge: undefined },
+    { href: '/farmer/review', label: 'レビュー', badge: undefined },
+    { href: '/farmer/wallet', label: 'ウォレット & 出金', badge: undefined },
+    {
+      href: '/disputes',
+      label: 'トラブル解決に協力',
+      badge: activeDisputesCount > 0 ? activeDisputesCount : undefined
     },
   ];
 
   const links = isConsumerSection ? consumerLinks : farmerLinks;
 
   return (
-    <aside className="w-50 bg-white dark:bg-gray-800 shadow-sm h-screen sticky top-0 hidden md:block">
+    <aside className="w-50 bg-background dark:bg-text shadow-sm h-screen sticky top-0 hidden md:block">
       <div className="p-4">
         <div className="mb-8">
-          <h2 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
+          <h2 className="text-lg font-semibold text-text dark:text-background mb-4">
             {isConsumerSection ? '消費者メニュー' : '農家メニュー'}
           </h2>
           <nav className="space-y-2">
@@ -58,33 +65,19 @@ const Navigation = () => {
                 key={link.href}
                 href={link.href}
                 className={`block px-4 py-2 rounded-md ${pathname === link.href
-                    ? 'bg-primary-100 text-primary-700 dark:bg-primary-900 dark:text-primary-300'
-                    : 'text-gray-600 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-700'
+                  ? 'bg-primary/20 text-accent2 dark:bg-primary/30 dark:text-accent1'
+                  : 'text-text/80 hover:bg-primary/10 hover:text-accent2 dark:text-background/80 dark:hover:bg-primary/20 dark:hover:text-accent1'
                   } relative`}
               >
                 {link.label}
                 {link.badge && (
-                  <span className="absolute right-2 top-1/2 -translate-y-1/2 bg-red-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">
+                  <span className="absolute right-2 top-1/2 -translate-y-1/2 bg-accent2 text-background text-xs rounded-full h-5 w-5 flex items-center justify-center">
                     {link.badge}
                   </span>
                 )}
               </Link>
             ))}
           </nav>
-        </div>
-
-        <div>
-          <h2 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
-            モード切替
-          </h2>
-          <div className="space-y-2">
-            <Link
-              href={isConsumerSection ? '/dashboard' : '/products'}
-              className="block px-4 py-2 rounded-md text-gray-600 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-700"
-            >
-              {isConsumerSection ? '農家モードへ切替' : '消費者モードへ切替'}
-            </Link>
-          </div>
         </div>
       </div>
     </aside>
